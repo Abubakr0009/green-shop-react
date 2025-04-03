@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 
-const RegisterForm = () => {
+const RegisterForm = ({ onRegisterSuccess }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -44,11 +44,12 @@ const RegisterForm = () => {
       );
 
       setSuccessMessage("Ro‘yxatdan o‘tish muvaffaqiyatli!");
-      setErrorMessage(""); // Clear error message if registration is successful
+      setErrorMessage(""); 
+      onRegisterSuccess();
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Xatolik yuz berdi!";
       setErrorMessage(errorMsg);
-      setSuccessMessage(""); // Clear success message if there's an error
+      setSuccessMessage(""); 
     }
   };
 
