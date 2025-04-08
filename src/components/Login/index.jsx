@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { signInWithGoogle } from "../../../firebase";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -13,17 +14,21 @@ const LoginForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  const token = "64bebc1e2c6d3f056a8c85b7";
+  const api = import.meta.env.VITE_API;
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
+  
 
   const validateForm = () => {
     const { email, password } = formData;
     if (!email || !password) {
-      setErrorMessage("Email and password are required!");
+      setErrorMessage("Email va parol kiritilishi kerak!");
       setSuccessMessage("");
       return false;
     }
@@ -34,9 +39,6 @@ const LoginForm = () => {
     if (!validateForm()) return;
 
     try {
-      const token = "64bebc1e2c6d3f056a8c85b7"; 
-      const api = import.meta.env.VITE_API;
-
       const res = await axios.post(
         `${api}/user/sign-in?access_token=${token}`,
         {
@@ -59,6 +61,37 @@ const LoginForm = () => {
       }
     } catch (error) {
       setErrorMessage("Login xatosi! Email yoki parol noto‘g‘ri.");
+      setSuccessMessage("");
+    }
+  };
+
+  const signInwithGoogle = async () => {
+    try {
+      const result = await signInWithGoogle();
+      const googleEmail = result.user.email;
+
+      const res = await axios.post(
+        `${api}/user/sign-in/google?access_token=${token}`,
+        {
+          email: googleEmail,
+        }
+      );
+
+      if (res.data?.data?.user) {
+        const userData = res.data.data.user;
+        localStorage.setItem("user", JSON.stringify(userData));
+        setSuccessMessage("Google orqali muvaffaqiyatli kirdingiz!");
+        setErrorMessage("");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
+      } else {
+        setErrorMessage("Google foydalanuvchisi topilmadi!");
+        setSuccessMessage("");
+      }
+    } catch (error) {
+      console.error("Google orqali login xatosi:", error);
+      setErrorMessage("Google orqali tizimga kirishda xatolik yuz berdi.");
       setSuccessMessage("");
     }
   };
@@ -123,8 +156,12 @@ const LoginForm = () => {
       </div>
 
       <div className="w-[377px] relative top-[50px]">
-        {/* Social login buttons (Facebook, Google, etc.) */}
-        {/* Your other login options */}
+        <button
+          onClick={signInwithGoogle}
+          className="w-full border border-green-500 text-green-500 py-2 rounded hover:bg-green-50"
+        >
+          Sign in with Google
+        </button>
       </div>
     </div>
   );

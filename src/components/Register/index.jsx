@@ -1,8 +1,146 @@
+// import axios from "axios";
+// import React, { useState } from "react";
+// import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
+
+// const RegisterForm = ({ onRegisterSuccess }) => {
+//   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+//   const [formData, setFormData] = useState({
+//     name: "",
+//     surname: "",
+//     email: "",
+//     password: "",
+//     confirmedPassword: "",
+//   });
+
+//   const [errorMessage, setErrorMessage] = useState("");
+//   const [successMessage, setSuccessMessage] = useState("");
+
+//   const handleChange = (e) => {
+//     setFormData({
+//       ...formData,
+//       [e.target.name]: e.target.value,
+//     });
+//   };
+
+//   const handleRegister = async () => {
+//     if (
+//       !formData.name ||
+//       !formData.surname ||
+//       !formData.email ||
+//       !formData.password ||
+//       formData.password !== formData.confirmedPassword
+//     ) {
+//       setErrorMessage("Xatolik: Barcha maydonlarni to‘ldiring va parollarni tekshirib ko‘ring!");
+//       return;
+//     }
+
+//     try {
+//       const token = "64bebc1e2c6d3f056a8c85b7";
+//       const api = import.meta.env.VITE_API;
+
+//       const res = await axios.post(
+//         `${api}/user/sign-up?access_token=${token}`,
+//         formData
+//       );
+
+//       setSuccessMessage("Ro‘yxatdan o‘tish muvaffaqiyatli!");
+//       setErrorMessage("");
+//       onRegisterSuccess();
+//     } catch (error) {
+//       const errorMsg = error.response?.data?.message || "Xatolik yuz berdi!";
+//       setErrorMessage(errorMsg);
+//       setSuccessMessage("");
+//     }
+//   };
+
+//   return (
+//     <div className="flex w-[472px] h-[630px] flex-col items-center">
+//       <div className="absolute text-center">
+//         <h3 className="text-sm mr-[100px] mt-8 font-normal">
+//           Enter your details to create an account.
+//         </h3>
+//         {errorMessage && (
+//           <p className="text-red-600 relative text-center top-[-50px]">{errorMessage}</p>
+//         )}
+//         {successMessage && (
+//           <p className="text-green-600 text-center relative top-[-50px]">{successMessage}</p>
+//         )}
+//       </div>
+
+//       <input
+//         type="text"
+//         name="name"
+//         placeholder="Name"
+//         onChange={handleChange}
+//         className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[14px] border rounded-[10px] border-[#46A358]"
+//       />
+//       <input
+//         type="text"
+//         name="surname"
+//         placeholder="Surname"
+//         onChange={handleChange}
+//         className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[25px] border rounded-[10px] border-[#46A358]"
+//       />
+//       <input
+//         type="email"
+//         name="email"
+//         placeholder="Email"
+//         onChange={handleChange}
+//         className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[25px] border rounded-[10px] border-[#46A358]"
+//       />
+//       <div className="relative w-[377px] top-[50px]">
+//         <input
+//           type={isPasswordVisible ? "text" : "password"}
+//           name="password"
+//           placeholder="*********"
+//           onChange={handleChange}
+//           className="pl-[15px] w-full h-[40px] mt-[25px] border rounded-[10px] border-[#46A358]"
+//         />
+//         <button
+//           type="button"
+//           className="absolute right-4 top-[34px] cursor-pointer"
+//           onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+//         >
+//           {isPasswordVisible ? <FaRegEye /> : <FaRegEyeSlash />}
+//         </button>
+//       </div>
+//       <input
+//         type={isPasswordVisible ? "text" : "password"}
+//         name="confirmedPassword"
+//         placeholder="Confirm Password"
+//         onChange={handleChange}
+//         className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[25px] border rounded-[10px] border-[#46A358]"
+//       />
+//       <button
+//         onClick={handleRegister}
+//         className="w-[377px] relative top-[50px] mt-[25px] bg-green-500 hover:bg-green-600 text-white p-2 rounded"
+//       >
+//         Register
+//       </button>
+//     </div>
+//   );
+// };
+
+// export default RegisterForm;
+
+
+
+
+
+
+
+
+
+
+
 import axios from "axios";
 import React, { useState } from "react";
-import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { signInWithGoogle } from "../../../firebase";
 
-const RegisterForm = ({ onRegisterSuccess }) => {
+const RegisterForm = () => {
+  const navigate = useNavigate();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -15,6 +153,9 @@ const RegisterForm = ({ onRegisterSuccess }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  const token = "64bebc1e2c6d3f056a8c85b7";
+  const api = import.meta.env.VITE_API;
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -22,52 +163,79 @@ const RegisterForm = ({ onRegisterSuccess }) => {
     });
   };
 
-  const handleRegister = async () => {
-    if (
-      !formData.name ||
-      !formData.surname ||
-      !formData.email ||
-      !formData.password ||
-      formData.password !== formData.confirmedPassword
-    ) {
-      setErrorMessage("Xatolik: Barcha maydonlarni to‘ldiring va parollarni tekshirib ko‘ring!");
-      return;
+  const validateForm = () => {
+    const { name, surname, email, password, confirmedPassword } = formData;
+    if (!name || !surname || !email || !password || password !== confirmedPassword) {
+      setErrorMessage("Barcha maydonlar to‘ldirilishi va parollar mos bo‘lishi kerak!");
+      setSuccessMessage("");
+      return false;
     }
+    return true;
+  };
+
+  const handleRegister = async () => {
+    if (!validateForm()) return;
 
     try {
-      const token = "64bebc1e2c6d3f056a8c85b7";
-      const api = import.meta.env.VITE_API;
-
       const res = await axios.post(
         `${api}/user/sign-up?access_token=${token}`,
         formData
       );
 
       setSuccessMessage("Ro‘yxatdan o‘tish muvaffaqiyatli!");
-      setErrorMessage(""); 
-      onRegisterSuccess();
+      setErrorMessage("");
+      localStorage.setItem("user", JSON.stringify(res.data.data.user));
+      setTimeout(() => navigate("/dashboard"), 1000);
     } catch (error) {
-      const errorMsg = error.response?.data?.message || "Xatolik yuz berdi!";
-      setErrorMessage(errorMsg);
-      setSuccessMessage(""); 
+      const msg = error.response?.data?.message || "Xatolik yuz berdi!";
+      setErrorMessage(msg);
+      setSuccessMessage("");
+    }
+  };
+
+  const handleGoogleRegister = async () => {
+    try {
+      const result = await signInWithGoogle();
+      const googleEmail = result.user.email;
+      const displayName = result.user.displayName || "";
+      const [name, surname] = displayName.split(" ");
+
+      const res = await axios.post(
+        `${api}/user/sign-up/google?access_token=${token}`,
+        {
+          email: googleEmail,
+          name: name || "",
+          surname: surname || "",
+        }
+      );
+
+      if (res.data?.data?.user) {
+        setSuccessMessage("Google orqali ro‘yxatdan o‘tildi!");
+        setErrorMessage("");
+        localStorage.setItem("user", JSON.stringify(res.data.data.user));
+        setTimeout(() => navigate("/dashboard"), 1000);
+      } else {
+        setErrorMessage("Google foydalanuvchisi bilan ro‘yxatdan o‘tolmadingiz.");
+        setSuccessMessage("");
+      }
+    } catch (error) {
+      console.error("Google orqali register xatosi:", error);
+      setErrorMessage("Google orqali ro‘yxatdan o‘tishda xatolik yuz berdi.");
+      setSuccessMessage("");
     }
   };
 
   return (
-    <div className="flex w-[472px] h-[630px] flex-col items-center">
+    <div className="flex w-[472px] h-[680px] flex-col items-center">
       <div className="absolute text-center">
         <h3 className="text-sm mr-[100px] mt-8 font-normal">
           Enter your details to create an account.
         </h3>
         {errorMessage && (
-          <p className="text-red-600 relative text-center top-[-50px]">
-            {errorMessage}
-          </p>
+          <p className="text-red-600 relative text-center top-[-50px]">{errorMessage}</p>
         )}
         {successMessage && (
-          <p className="text-green-600 text-center relative top-[-50px]">
-            {successMessage}
-          </p>
+          <p className="text-green-600 text-center relative top-[-50px]">{successMessage}</p>
         )}
       </div>
 
@@ -76,116 +244,64 @@ const RegisterForm = ({ onRegisterSuccess }) => {
         name="name"
         placeholder="Name"
         onChange={handleChange}
-        className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[14px] border rounded-[10px] border-[#46A358] hover:outline-[#3b82f680]"
+        className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[14px] border rounded-[10px] border-[#46A358]"
       />
       <input
         type="text"
         name="surname"
         placeholder="Surname"
         onChange={handleChange}
-        className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[25px] border rounded-[10px] border-[#46A358] hover:outline-[#3b82f680]"
+        className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[25px] border rounded-[10px] border-[#46A358]"
       />
       <input
         type="email"
         name="email"
         placeholder="Email"
         onChange={handleChange}
-        className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[25px] border rounded-[10px] border-[#46A358] hover:outline-[#3b82f680]"
+        className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[25px] border rounded-[10px] border-[#46A358]"
       />
-      <input
-        type={isPasswordVisible ? "text" : "password"}
-        name="password"
-        onChange={handleChange}
-        placeholder="*********"
-        className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[25px] border rounded-[10px] border-[#46A358] hover:outline-[#3b82f680]"
-      />
-      <button
-        type="button"
-        className="absolute right-[87px] cursor-pointer top-[358px] transform -translate-y-1/2"
-        onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-      >
-        {isPasswordVisible ? <FaRegEye /> : <FaRegEyeSlash />}
-      </button>
+      <div className="relative w-[377px] top-[50px]">
+        <input
+          type={isPasswordVisible ? "text" : "password"}
+          name="password"
+          placeholder="*********"
+          onChange={handleChange}
+          className="pl-[15px] w-full h-[40px] mt-[25px] border rounded-[10px] border-[#46A358]"
+        />
+        <button
+          type="button"
+          className="absolute right-4 top-[34px] cursor-pointer"
+          onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+        >
+          {isPasswordVisible ? <FaRegEye /> : <FaRegEyeSlash />}
+        </button>
+      </div>
       <input
         type={isPasswordVisible ? "text" : "password"}
         name="confirmedPassword"
         placeholder="Confirm Password"
         onChange={handleChange}
-        className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[25px] border rounded-[10px] border-[#46A358] hover:outline-[#3b82f680]"
+        className="pl-[15px] w-[377px] relative top-[50px] h-[40px] mt-[25px] border rounded-[10px] border-[#46A358]"
       />
       <button
         onClick={handleRegister}
-        className="w-[377px] relative top-[50px] mt-[25px] cursor-pointer hover:bg-green-600 bg-green-500 text-white p-2 rounded"
+        className="w-[377px] relative top-[40px] mt-[25px] bg-green-500 hover:bg-green-600 text-white p-2 rounded"
       >
         Register
       </button>
 
-      <div className="flex items-center relative top-[50px]">
+      <div className="flex items-center relative top-[50px] mt-4">
         <span className="border-t-[1px] w-[130px] mt-[5px]"></span>
-        <p className="my-[16px] mx-[10px]">Or login with</p>
+        <p className="my-[16px] mx-[10px]">Or register with</p>
         <span className="border-t-[1px] w-[130px] mt-[5px]"></span>
       </div>
 
       <div className="w-[377px] relative top-[50px]">
-        <button className="cursor-pointer flex items-center gap-2 border border-[#EAEAEA] h-[40px] w-full rounded-md mb-[15px]">
-          <span
-            role="img"
-            aria-label="facebook"
-            className="anticon anticon-facebook pl-[15px]"
-          >
-            <svg
-              viewBox="64 64 896 896"
-              focusable="false"
-              data-icon="facebook"
-              width="1em"
-              height="1em"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-92.4 233.5h-63.9c-50.1 0-59.8 23.8-59.8 58.8v77.1h119.6l-15.6 120.7h-104V912H539.2V602.2H434.9V481.4h104.3v-89c0-103.3 63.1-159.6 155.3-159.6 44.2 0 82.1 3.3 93.2 4.8v107.9z"></path>
-            </svg>
-          </span>
-          Login with Facebook
-        </button>
-        <button className="cursor-pointer flex items-center gap-2 border border-[#EAEAEA] h-[40px] w-full rounded-md">
-          <span
-            role="img"
-            aria-label="google"
-            className="anticon anticon-google pl-[15px]"
-          >
-            <svg
-              viewBox="64 64 896 896"
-              focusable="false"
-              data-icon="google"
-              width="1em"
-              height="1em"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M881 442.4H519.7v148.5h206.4c-8.9 48-35.9 88.6-76.6 115.8-34.4 23-78.3 36.6-129.9 36.6-99.9 0-184.4-67.5-214.6-158.2-7.6-23-12-47.6-12-72.9s4.4-49.9 12-72.9c30.3-90.6 114.8-158.1 214.7-158.1 56.3 0 106.8 19.4 146.6 57.4l110-110.1c-66.5-62-153.2-100-256.6-100-149.9 0-279.6 86-342.7 211.4-26 51.8-40.8 110.4-40.8 172.4S151 632.8 177 684.6C240.1 810 369.8 896 519.7 896c103.6 0 190.4-34.4 253.8-93 72.5-66.8 114.4-165.2 114.4-282.1 0-27.2-2.4-53.3-6.9-78.5z"></path>
-            </svg>
-          </span>
-          Login with Google
-        </button>
-        <button className="cursor-pointer flex items-center gap-2 border border-[#EAEAEA] h-[40px] w-full rounded-md mt-[15px]">
-          <span
-            role="img"
-            aria-label="scan"
-            className="anticon anticon-scan pl-[15px]"
-          >
-            <svg
-              viewBox="64 64 896 896"
-              focusable="false"
-              data-icon="scan"
-              width="1em"
-              height="1em"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M136 384h56c4.4 0 8-3.6 8-8V200h176c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H196c-37.6 0-68 30.4-68 68v180c0 4.4 3.6 8 8 8zm512-184h176v176c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V196c0-37.6-30.4-68-68-68H648c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zM376 824H200V648c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v180c0 37.6 30.4 68 68 68h180c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm512-184h-56c-4.4 0-8 3.6-8 8v176H648c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h180c37.6 0 68-30.4 68-68V648c0-4.4-3.6-8-8-8zm16-164H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8z"></path>
-            </svg>
-          </span>
-          Login with Qr Code
+        <button
+          onClick={handleGoogleRegister}
+          className="w-full border border-green-500 text-green-500 py-2 rounded hover:bg-green-50"
+        >
+          Sign up with Google
         </button>
       </div>
     </div>
